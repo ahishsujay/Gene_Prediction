@@ -11,6 +11,7 @@ def makeDir():
     subprocess.run("mkdir temp", shell=True)
 
     subprocess.run("mkdir tool_output/org_cds_db", shell=True)
+    subprocess.run("mkdir tool_output/MergedBLAST", shell=True)
 
     subprocess.run("mkdir tool_output/prodigal_fasta_result", shell=True)
     subprocess.run("mkdir tool_output/prodigal_gff_result", shell=True)
@@ -27,7 +28,7 @@ def makeDir():
 ############################################################ Creating database of organism CDS for BLAST ##############################################################
 def blastDatabase(org_cds):
 
-    make_database = "makeblastdb -in "+str(org_cds)+" -dbtype nucl -blastdb_version 5 -out org_cds_db/blast"
+    make_database = "makeblastdb -in "+str(org_cds)+" -dbtype nucl -blastdb_version 5 -out tool_output/org_cds_db/blast"
     make_database_subprocess = subprocess.check_output(make_database.split())
 
 ######################################################################### Run Prodigal ################################################################################
@@ -95,6 +96,16 @@ def runGetFASTA(input_file):
         subprocess.run("bedtools getfasta -fi "+input_file+"/"+i+" -bed tool_output/MergedGFF/"+j+" > tool_output/MergedFASTA/merged_fasta_"+i, shell=True)
         subprocess.run("rm "+input_file+"*.fai", shell=True)
 
+########################################################################## Run BLASTN ##################################################################################
+def runBLAST():
+    files6 = subprocess.run("ls tool_output/MergedFASTA/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
+
+    for i in files6:
+        print(i)
+        subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -outfmt 6 -max_hsps 1 -max_target_seqs 1 -num_threads 8 > tool_output/MergedBLAST/"+i+".out", shell = True)
+
+
+
 def main():
 
     #Argparse code:
@@ -125,6 +136,7 @@ def main():
     '''
     runBedtoolsIntersect(input_file)
     runGetFASTA(input_file)
+    runBLAST()
 
 if __name__ == "__main__":
     main()
