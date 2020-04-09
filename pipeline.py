@@ -5,13 +5,15 @@ import subprocess
 import argparse
 
 ######################################################################## Make directories #############################################################################
-def makeDir():
+def makeDir(output_directory):
+
+    subprocess.run("mkdir "+str(output_directory), shell=True)
 
     subprocess.run("mkdir tool_output", shell=True)
     subprocess.run("mkdir temp", shell=True)
 
     subprocess.run("mkdir tool_output/org_cds_db", shell=True)
-    subprocess.run("mkdir tool_output/MergedBLAST", shell=True)
+    subprocess.run("mkdir "+str(output_directory)+"/MergedBLAST", shell=True)
 
     subprocess.run("mkdir tool_output/prodigal_fasta_result", shell=True)
     subprocess.run("mkdir tool_output/prodigal_gff_result", shell=True)
@@ -22,8 +24,8 @@ def makeDir():
     subprocess.run("mkdir tool_output/prodigal_bedtools", shell=True)
     subprocess.run("mkdir tool_output/gms2_bedtools", shell=True)
 
-    subprocess.run("mkdir tool_output/MergedGFF", shell=True)
-    subprocess.run("mkdir tool_output/MergedFASTA", shell=True)
+    subprocess.run("mkdir "+str(output_directory)+"/MergedGFF", shell=True)
+    subprocess.run("mkdir "+str(output_directory)+"/MergedFASTA", shell=True)
 
 ############################################################ Creating database of organism CDS for BLAST ##############################################################
 def blastDatabase(org_cds):
@@ -55,7 +57,7 @@ def runGMS2(input_file):
     #alias genemarks2="/Users/ahishsujay/ahishbin/gms2_macos/gms2.pl"
 
 ################################################################### Run BEDTools intersection #########################################################################
-def runBedtoolsIntersect(input_file):
+def runBedtoolsIntersect(input_file, output_directory):
 
     gms2_file = subprocess.run("ls tool_output/gms2_gff_result/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     #print(gms2_file)
@@ -81,29 +83,31 @@ def runBedtoolsIntersect(input_file):
     files3 = subprocess.run("ls tool_output/prodigal_bedtools/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     #print(files1,"\t", files2,"\t", files3)
     for i,j,k in zip(files1,files2,files3):
-        subprocess.run("cat tool_output/prodigal_gms2_intersection/"+i+" tool_output/gms2_bedtools/"+j+" tool_output/prodigal_bedtools/"+k+" > tool_output/MergedGFF/final_merged_gff_"+i+j+k, shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
+        subprocess.run("cat tool_output/prodigal_gms2_intersection/"+i+" tool_output/gms2_bedtools/"+j+" tool_output/prodigal_bedtools/"+k+" > "+str(output_directory)+"/MergedGFF/final_merged_gff_"+i+j+k, shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
 ######################################################################### Get FASTA files #############################################################################
-def runGetFASTA(input_file):
+def runGetFASTA(input_file, output_directory):
 
-    files4 = subprocess.run("ls tool_output/MergedGFF/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
+    files4 = subprocess.run("ls "+str(output_directory)+"/MergedGFF/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     files5 = subprocess.run("ls "+input_file+"/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     #print(files4)
     #print(files5)
 
     for i,j in zip(files5,files4):
-        print(i,"\t",j)
-        subprocess.run("bedtools getfasta -fi "+input_file+"/"+i+" -bed tool_output/MergedGFF/"+j+" > tool_output/MergedFASTA/merged_fasta_"+i, shell=True)
+        #print(i,"\t",j)
+        subprocess.run("bedtools getfasta -fi "+input_file+"/"+i+" -bed "+str(output_directory)+"/MergedGFF/"+j+" > "+str(output_directory)+"/MergedFASTA/merged_fasta_"+i, shell=True)
         subprocess.run("rm "+input_file+"*.fai", shell=True)
 
 ########################################################################## Run BLASTN ##################################################################################
-def runBLAST():
+def runBLAST(output_directory):
     files6 = subprocess.run("ls tool_output/MergedFASTA/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
     for i in files6:
         print(i)
-        subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -outfmt 6 -max_hsps 1 -max_target_seqs 1 -num_threads 8 > tool_output/MergedBLAST/"+i+".out", shell = True)
+        subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -max_hsps 1 -max_target_seqs 1 -num_threads 8 > "+str(output_directory)+"/MergedBLAST/"+i+".out", shell = True)
 
+################################################################# True Positive / False Positive #######################################################################
+#def TPFP(output_directory):
 
 
 def main():
@@ -112,11 +116,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", help = "Input directory containing FASTA files to be analyzed.")
     parser.add_argument("-org_cds", help = "Organism of interest's CDS FASTA file.")
+    parser.add_argument("-o", help = "Output directory name for your outputs.")
     args = parser.parse_args()
 
     #Populating variables:
     input_file = args.i
     org_cds = args.org_cds
+    output_directory = args.o
 
     #filename1 = "ls "+input_file+"*.fasta"
     filename1 = subprocess.run("ls "+input_file+"*.fasta", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
@@ -126,7 +132,7 @@ def main():
     subprocess.call(make_tool_output_dir.split())
 
     #Calling functions:
-    makeDir()
+    makeDir(output_directory)
     blastDatabase(org_cds)
     '''
     for files in filename1:
@@ -134,9 +140,9 @@ def main():
         #runProdigal(files)
         #runGMS2(files)
     '''
-    runBedtoolsIntersect(input_file)
-    runGetFASTA(input_file)
-    runBLAST()
+    runBedtoolsIntersect(input_file, output_directory)
+    runGetFASTA(input_file, output_directory)
+    runBLAST(output_directory)
 
 if __name__ == "__main__":
     main()
