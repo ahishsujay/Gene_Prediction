@@ -104,11 +104,35 @@ def runBLAST(output_directory):
 
     for i in files6:
         print(i)
-        subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -max_hsps 1 -max_target_seqs 1 -num_threads 8 > "+str(output_directory)+"/MergedBLAST/"+i+".out", shell = True)
+        subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -max_hsps 1 -max_target_seqs 1 -num_threads 8 > "+str(output_directory)+"/MergedBLAST/"+i.replace("merged_fasta","blast")+".out", shell = True)
+        subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -outfmt 6 -max_hsps 1 -max_target_seqs 1 -num_threads 8 > "+str(output_directory)+"/MergedBLAST/"+i.replace("merged_fasta","blast_outfmt")+".out", shell = True)
 
 ################################################################# True Positive / False Positive #######################################################################
-#def TPFP(output_directory):
+def TPFP(FASTA_files, BLAST_files):
 
+    fasta_file = open(FASTA_files, "r").readlines()
+    blast_file = open(BLAST_files,"r").readlines()
+    blast_header = []
+
+    for line in blast_file:
+        blast_header.append(line.split("\t")[0])
+
+    write_output = open(FASTA_files, "w")
+
+    for line in fasta_file:
+        if line.startswith(">"):
+            fasta_header = line.split(">")[1]
+            fasta_header = fasta_header.rstrip("\n")
+
+            if fasta_header in blast_header:
+                line = line.rstrip("\n")
+                write_output.write(line + " TP"+"\n")
+            else:
+                line = line.rstrip("\n")
+                write_output.write(line + " FP"+"\n")
+        else:
+            write_output.write(line)
+    write_output.close()
 
 def main():
 
@@ -137,12 +161,21 @@ def main():
     '''
     for files in filename1:
         print(files)
-        #runProdigal(files)
-        #runGMS2(files)
+        runProdigal(files)
+        runGMS2(files)
     '''
     runBedtoolsIntersect(input_file, output_directory)
     runGetFASTA(input_file, output_directory)
-    runBLAST(output_directory)
+    #runBLAST(output_directory)
+
+    #TPFP(output_directory)
+
+    filename2 = subprocess.run("ls "+output_directory+"/MergedFASTA/*.fasta", shell=True,stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
+    filename3 = subprocess.run("ls "+output_directory+"/MergedBLAST/*blast_outfmt*",shell=True,stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
+
+    for i,j in zip(filename2,filename3):
+        TPFP(i,j)
+
 
 if __name__ == "__main__":
     main()
