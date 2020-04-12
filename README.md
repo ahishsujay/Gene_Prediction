@@ -4,9 +4,9 @@ A Gene Prediction pipeline that predicts coding and non-coding genes from assemb
 
 ## Pipeline Requirements:
 ## Coding:
-1. [PRODIGAL](https://github.com/hyattpd/Prodigal) Alternatively, easier to install through conda: `conda install -c bioconda prodigal`
+1. [PRODIGAL](https://github.com/hyattpd/Prodigal). Alternatively, easier to install through conda: `conda install -c bioconda prodigal`
 2. [GeneMarkS-2](http://exon.gatech.edu/GeneMark/license_download.cgi)
-3. [BLAST](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST) Alternatively, easier to install through conda: `install -c bioconda blast` <br />
+3. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download) ;Alternatively, easier to install through conda: `install -c bioconda blast` <br />
 
 ## Non-coding:
 1. [ARAGORN]
