@@ -6,6 +6,7 @@ A Gene Prediction pipeline that predicts coding and non-coding genes from assemb
 ## Coding:
 1. [PRODIGAL](https://github.com/hyattpd/Prodigal). Alternatively, easier to install through conda: `conda install -c bioconda prodigal`
 2. [GeneMarkS-2](http://exon.gatech.edu/GeneMark/license_download.cgi)
+> NOTE: If GeneMarkS-2 is being ran/downloaded on a MacOS then you would have to download the "64 bit key" along with GeneMarkS-2 and execute the following command once the files have been downloaded: `cp gm_key_64 ~/.gm_key_64`
 3. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). Alternatively, easier to install through conda: `install -c bioconda blast` <br />
 
 ## Non-coding:
