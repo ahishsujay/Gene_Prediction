@@ -60,28 +60,20 @@ def runGMS2(input_file):
 def runBedtoolsIntersect(input_file, output_directory):
 
     gms2_file = subprocess.run("ls tool_output/gms2_gff_result/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
-    #print(gms2_file)
     prodigal_file = subprocess.run("ls tool_output/prodigal_gff_result/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
-    #print(prodigal_file)
 
     for i,j in zip(gms2_file,prodigal_file):
-        #print(i,"\t",j)
-        #run_bedtools_intersect = subprocess.run("bedtools intersect -f 1,0 -r -a tool_output/gms2_gff_result/"+i+" -b tool_output/prodigal_gff_result/"+j+" > tool_output/prodigal_gms2_intersection/"+i+"_"+j,shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
 
         subprocess.run("bedtools intersect -f 1,0 -r -a tool_output/gms2_gff_result/"+i+" -b tool_output/prodigal_gff_result/"+j+" > tool_output/prodigal_gms2_intersection/"+i+"_"+j, shell=True)
-        #bedtools intersect -f 1,0 -r -a ../tool_output/gms2_gff_result/gms2_gff_CGT3002contigs -b ../tool_output/prodigal_gff_result/prodigal_gff_CGT3002contigs > 3002both
-        #run_bedtools_intersect_subprocess = subprocess.run(run_bedtools_intersect, shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
         subprocess.run("bedtools intersect -f 1,0 -r -v -a tool_output/gms2_gff_result/"+i+" -b tool_output/prodigal_gff_result/"+j+" > tool_output/gms2_bedtools/"+i+"_"+j, shell=True)
-        #run_bedtools_intersect_gms2_subprocess = subprocess.run(run_bedtools_intersect_gms2, shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
         subprocess.run("bedtools intersect -f 1,0 -r -v -a tool_output/prodigal_gff_result/"+j+" -b tool_output/gms2_gff_result/"+i+" > tool_output/prodigal_bedtools/"+i+"_"+j, shell=True)
-        #run_bedtools_intersect_prodigal_subprocess = subprocess.run(run_bedtools_intersect_prodigal, shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
     files1 = subprocess.run("ls tool_output/prodigal_gms2_intersection/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     files2 = subprocess.run("ls tool_output/gms2_bedtools/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     files3 = subprocess.run("ls tool_output/prodigal_bedtools/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
-    #print(files1,"\t", files2,"\t", files3)
+
     for i,j,k in zip(files1,files2,files3):
         subprocess.run("cat tool_output/prodigal_gms2_intersection/"+i+" tool_output/gms2_bedtools/"+j+" tool_output/prodigal_bedtools/"+k+" > "+str(output_directory)+"/MergedGFF/final_merged_gff_"+i+j+k, shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
@@ -90,11 +82,8 @@ def runGetFASTA(input_file, output_directory):
 
     files4 = subprocess.run("ls "+str(output_directory)+"/MergedGFF/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
     files5 = subprocess.run("ls "+input_file+"/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
-    #print(files4)
-    #print(files5)
 
     for i,j in zip(files5,files4):
-        #print(i,"\t",j)
         subprocess.run("bedtools getfasta -fi "+input_file+"/"+i+" -bed "+str(output_directory)+"/MergedGFF/"+j+" > "+str(output_directory)+"/MergedFASTA/merged_fasta_"+i, shell=True)
         subprocess.run("rm "+input_file+"*.fai", shell=True)
 
@@ -103,7 +92,6 @@ def runBLAST(output_directory):
     files6 = subprocess.run("ls tool_output/MergedFASTA/", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip().split("\n")
 
     for i in files6:
-        print(i)
         subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -max_hsps 1 -max_target_seqs 1 -num_threads 8 > "+str(output_directory)+"/MergedBLAST/"+i.replace("merged_fasta","blast")+".out", shell = True)
         subprocess.run("blastn -db tool_output/org_cds_db/blast -query tool_output/MergedFASTA/"+i+ " -outfmt 6 -max_hsps 1 -max_target_seqs 1 -num_threads 8 > "+str(output_directory)+"/MergedBLAST/"+i.replace("merged_fasta","blast_outfmt")+".out", shell = True)
 
@@ -148,9 +136,9 @@ def main():
     org_cds = args.org_cds
     output_directory = args.o
 
-    #filename1 = "ls "+input_file+"*.fasta"
     filename1 = subprocess.run("ls "+input_file+"*.fasta", shell=True, stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
-    print(filename1)
+    filename2 = subprocess.run("ls "+output_directory+"/MergedFASTA/*.fasta", shell=True,stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
+    filename3 = subprocess.run("ls "+output_directory+"/MergedBLAST/*blast_outfmt*",shell=True,stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
 
     make_tool_output_dir = "mkdir tool_output"
     subprocess.call(make_tool_output_dir.split())
@@ -158,24 +146,14 @@ def main():
     #Calling functions:
     makeDir(output_directory)
     blastDatabase(org_cds)
-    '''
     for files in filename1:
-        print(files)
         runProdigal(files)
         runGMS2(files)
-    '''
     runBedtoolsIntersect(input_file, output_directory)
     runGetFASTA(input_file, output_directory)
-    #runBLAST(output_directory)
-
-    #TPFP(output_directory)
-
-    filename2 = subprocess.run("ls "+output_directory+"/MergedFASTA/*.fasta", shell=True,stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
-    filename3 = subprocess.run("ls "+output_directory+"/MergedBLAST/*blast_outfmt*",shell=True,stdout=subprocess.PIPE, encoding='utf-8').stdout.rstrip("\n").split()
-
+    runBLAST(output_directory)
     for i,j in zip(filename2,filename3):
         TPFP(i,j)
-
 
 if __name__ == "__main__":
     main()
