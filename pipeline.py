@@ -105,9 +105,12 @@ def runBLAST(output_directory):
 ########################################################### True Positive (TP) / False Positive (FP) #######################################################################
 def runRename(FASTA_files, BLAST_files):
 
-    fasta_file = open(FASTA_files, "r").readlines()                             #Reading MergedFASTA files
-    blast_file = open(BLAST_files,"r").readlines()                              #Reading MergedBLAST files
-    blast_header = []                                                           #Stores the BLAST headers in first column in BLAST outfmt file, which is basically the FASTA header
+    with open(FASTA_files, "r") as fh:
+        fasta_file = fh.readlines()
+
+    with open(BLAST_files. "r") as fh:
+        blast_file = fh.readlines()
+    blast_header = []
 
     for line in blast_file:
         blast_header.append(line.split("\t")[0])
