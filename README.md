@@ -8,6 +8,7 @@ A Gene Prediction pipeline that predicts coding and non-coding genes from assemb
 > NOTE: If GeneMarkS-2 is being ran/downloaded on a MacOS then you would have to download the "64 bit key" along with GeneMarkS-2 and execute the following command once the files have been downloaded: `cp gm_key_64 ~/.gm_key_64`
 3. [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). Or: `install -c bioconda blast` <br />
 4. [BEDTools](https://bedtools.readthedocs.io/en/latest/content/installation.html). Or: `conda install -c bioconda bedtools`
+5. [Perl](https://www.perl.org/). Or: `conda install -c anaconda perl`
 
 NOTE: Once downloaded, all tools are assumed to be installed onto your PATH.
 
