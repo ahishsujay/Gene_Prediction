@@ -3,6 +3,9 @@
 import os
 import subprocess
 import argparse
+import logging
+
+log = logging.getLogger('PipelineLogger.GenePredictionLog')
 
 ######################################################################## Make directories #############################################################################
 def makeDir(output_directory):
@@ -33,14 +36,20 @@ def blastDatabase(org_cds):
     print("\nCreating database for organism CDS provided...")
     subprocess.run("makeblastdb -in "+str(org_cds)+" -dbtype nucl -out tool_output/org_cds_db/blast", shell=True)
 
+    log.info("Created the required blast databases for:"+org_cds)
+
 ######################################################################### Run Prodigal ################################################################################
 def runProdigal(input_file):
+
+    log.info("Running Prodigal for "+input_file)
 
     print("\nRunning Prodigal for: "+input_file.split("/")[-1])
     subprocess.run("prodigal -i "+str(input_file)+" -d tool_output/prodigal_fasta_result/prodigal_fasta_"+str(input_file.split("/")[-1])+" -f gff -o tool_output/prodigal_gff_result/prodigal_gff_"+str(input_file.split("/")[-1].replace(".fasta","")), shell=True)
 
 ####################################################################### Run GeneMarkS-2 ###############################################################################
 def runGMS2(input_file):
+
+    log.info("Running GeneMarkS-2 for"+input_file)
 
     print("\nRunning GeneMarkS-2 for: "+input_file.split("/")[-1])
     subprocess.run("gms2.pl --seq "+str(input_file)+" --genome-type auto --fnn tool_output/gms2_fasta_result/gms2_fasta_"+str(input_file.split("/")[-1])+" --output tool_output/gms2_gff_result/gms2_gff_"+str(input_file.split("/")[-1].replace(".fasta",""))+" --format gff", shell=True)
@@ -52,6 +61,8 @@ def runGMS2(input_file):
 
 ################################################################### Run BEDTools intersection #########################################################################
 def runBedtoolsIntersect(input_file, output_directory):
+
+    log.info("Obtaining a single merged GFF file for the provided input files.")
 
     print("\nRunning BEDTools intersect...")
 
@@ -80,6 +91,8 @@ def runBedtoolsIntersect(input_file, output_directory):
 ######################################################################### Get FASTA files #############################################################################
 def runGetFASTA(input_file, output_directory):
 
+    log.info("Running getfasta...")
+
     print("\nRunning BEDTools getfasta...")
 
     files4 = sorted(os.listdir("tool_output//MergedGFF/"))
@@ -93,6 +106,8 @@ def runGetFASTA(input_file, output_directory):
 ########################################################################## Run BLASTN ##################################################################################
 def runBLAST(output_directory):
 
+    log.info("Performing BLAST")
+
     print("\nRunning blastn...")
 
     files6 = sorted(os.listdir(output_directory+"/MergedFASTA/"))
@@ -104,6 +119,8 @@ def runBLAST(output_directory):
 
 ########################################################### True Positive (TP) / False Positive (FP) #######################################################################
 def runRename(FASTA_files, BLAST_files):
+
+    log.info("Identifying false positives and true positives...")
 
     print("\nRenaming "+FASTA_files.split("/")[-1]+"...")
 
@@ -137,6 +154,8 @@ def runRename(FASTA_files, BLAST_files):
 ######################################################################### main function #########################################################################
 
 def main():
+
+    logging.basicConfig(filename='GenePredictionPipeline.log',level=logging.INFO)
 
     #Argparse code:
     parser = argparse.ArgumentParser()
